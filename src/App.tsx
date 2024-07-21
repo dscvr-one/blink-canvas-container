@@ -29,7 +29,7 @@ const App = () => {
           const actionUrl = new URL(actionParam);
           
           // Extract website URL (origin) from the action URL
-          setWebsiteUrl(actionUrl.origin);
+          setWebsiteUrl(actionUrl.toString());
           
           // Extract website text from the pathname
           // Remove leading slash and replace hyphens with spaces
