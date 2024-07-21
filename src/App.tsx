@@ -63,7 +63,6 @@ const App = () => {
 
   return (
     <>
-      <div className="">Blinks v0.5.0</div>
       {action && (
         <ActionContainer
           action={action}
