@@ -25,7 +25,7 @@ export default defineConfig({
   server: {
     hmr: false, // Disable HMR to avoid inline script injection
     headers: {
-      'Content-Security-Policy': "connect-src https://*.dial.to/ https://proxy.dial.to/; img-src https://*.dial.to/ https://proxy.dial.to/;"
+      'Content-Security-Policy': "default-src 'self'; connect-src 'self' http://localhost:* https://*.dial.to/ https://proxy.dial.to/; img-src 'self' https://*.dial.to/ https://proxy.dial.to/; script-src 'self'; style-src 'self' 'unsafe-inline';"
     }
   },
 })
