@@ -39,7 +39,7 @@ class MyActionAdapter implements ActionAdapter {
 }
 
 const App = () => {
-  const [count, setCount] = useState(0);
+  //const [count, setCount] = useState(0);
   const [action, setAction] = useState<Action | null>(null);
 
   useEffect(() => {
