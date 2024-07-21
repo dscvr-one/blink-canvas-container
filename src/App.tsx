@@ -9,16 +9,16 @@ import './blink.css'
 import { CanvasAdapter, isIframe } from "./canvas-adapter";
 
 const App = () => {
-  //const [count, setCount] = useState(0);
   const [action, setAction] = useState<Action | null>(null);
+  const [isInIframe, setIsInIframe] = useState(false);
 
   useEffect(() => {
-    const adapter = isIframe() ? new CanvasAdapter() : undefined;
+    const iframe = isIframe();
+    setIsInIframe(iframe);
+    const adapter = iframe ? new CanvasAdapter() : undefined;
 
     const fetchAction = async () => {
-      // Get the current URL
       const url = new URL(window.location.href);
-      // Get the 'action' query parameter
       const actionParam = url.searchParams.get('action') ?? 'https://blink-chat.xyz/api/actions/chat';
       
       if (actionParam) {
@@ -42,8 +42,14 @@ const App = () => {
 
   const exampleSecurityLevel = "only-trusted";
 
+  const containerStyle = !isInIframe ? {
+    maxWidth: '600px',
+    margin: '0 auto',
+    width: '100%'
+  } : {};
+
   return (
-    <>
+    <div style={containerStyle}>
       {action && (
         <ActionContainer
           action={action}
@@ -54,7 +60,7 @@ const App = () => {
           stylePreset="x-dark"
         />
       )}
-    </>
+    </div>
   );
 };
 
