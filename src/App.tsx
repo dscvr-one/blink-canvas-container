@@ -11,6 +11,8 @@ import { CanvasAdapter, isIframe } from "./canvas-adapter";
 const App = () => {
   const [action, setAction] = useState<Action | null>(null);
   const [isInIframe, setIsInIframe] = useState(false);
+  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [websiteText, setWebsiteText] = useState("");
 
   useEffect(() => {
     const iframe = isIframe();
@@ -19,14 +21,28 @@ const App = () => {
 
     const fetchAction = async () => {
       const url = new URL(window.location.href);
+      
       const actionParam = url.searchParams.get('action') ?? 'https://blink-chat.xyz/api/actions/chat';
       
       if (actionParam) {
-        const action = await Action.fetch(
-          actionParam,
-          adapter
-        );
-        setAction(action);
+        try {
+          const actionUrl = new URL(actionParam);
+          
+          // Extract website URL (origin) from the action URL
+          setWebsiteUrl(actionUrl.origin);
+          
+          // Extract website text from the pathname
+          // Remove leading slash and replace hyphens with spaces
+          setWebsiteText(actionUrl.host);
+
+          const action = await Action.fetch(
+            actionParam,
+            adapter
+          );
+          setAction(action);
+        } catch (error) {
+          console.error("Invalid action URL:", error);
+        }
       } else {
         console.error("No action parameter provided in URL");
       }
@@ -53,8 +69,8 @@ const App = () => {
       {action && (
         <ActionContainer
           action={action}
-          websiteUrl="https://example.com"
-          websiteText=""
+          websiteUrl={websiteUrl}
+          websiteText={websiteText}
           callbacks={exampleCallbacks}
           securityLevel={exampleSecurityLevel}
           stylePreset="x-dark"
