@@ -10,7 +10,7 @@ import { CanvasAdapter, isIframe } from "./canvas-adapter";
 
 const App = () => {
   const [action, setAction] = useState<Action | null>(null);
-  const [isInIframe, setIsInIframe] = useState(false);
+  const [_, setIsInIframe] = useState(false);
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [websiteText, setWebsiteText] = useState("");
 
@@ -58,11 +58,11 @@ const App = () => {
 
   const exampleSecurityLevel = "only-trusted";
 
-  const containerStyle = !isInIframe ? {
+  const containerStyle = {
     maxWidth: '380px',
     margin: '0 auto',
     width: '100%'
-  } : {};
+  };
 
   return (
     <div style={containerStyle}>

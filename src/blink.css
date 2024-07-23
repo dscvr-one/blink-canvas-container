@@ -49,3 +49,7 @@
     /* box-shadow */
     --blink-shadow-container: 0px 2px 8px 0px rgba(59, 176, 255, 0.22), 0px 1px 48px 0px rgba(29, 155, 240, 0.24);
   }
+
+  .bg-transparent-warning {
+    font-size: 10px !important;
+  }
