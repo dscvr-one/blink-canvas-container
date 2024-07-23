@@ -59,7 +59,7 @@ const App = () => {
   const exampleSecurityLevel = "only-trusted";
 
   const containerStyle = !isInIframe ? {
-    maxWidth: '600px',
+    maxWidth: '380px',
     margin: '0 auto',
     width: '100%'
   } : {};
