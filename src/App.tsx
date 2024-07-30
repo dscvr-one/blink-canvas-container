@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import {
   Action,
@@ -7,14 +7,20 @@ import {
 import '@dialectlabs/blinks/index.css';
 import './blink.css'
 import { CanvasAdapter, isIframe } from "./canvas-adapter";
+import { CanvasClient } from "@dscvr-one/canvas-client-sdk";
 
 const App = () => {
   const [action, setAction] = useState<Action | null>(null);
   const [_, setIsInIframe] = useState(false);
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [websiteText, setWebsiteText] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasClientRef = useRef<CanvasClient | undefined>();
 
+  
   useEffect(() => {
+    canvasClientRef.current = new CanvasClient();
+
     const iframe = isIframe();
     setIsInIframe(iframe);
     const adapter = iframe ? new CanvasAdapter() : undefined;
@@ -48,6 +54,21 @@ const App = () => {
       }
     };
     fetchAction();
+
+    const resizeObserver = new ResizeObserver((_) => {
+      canvasClientRef?.current?.resize();
+    });
+
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    // Cleanup function
+    return () => {
+      if (containerRef.current) {
+        resizeObserver.unobserve(containerRef.current);
+      }
+    };
   }, []);
 
   const exampleCallbacks = {
@@ -65,7 +86,7 @@ const App = () => {
   };
 
   return (
-    <div style={containerStyle}>
+    <div ref={containerRef} style={containerStyle}>
       {action && (
         <ActionContainer
           action={action}
