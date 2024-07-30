@@ -34,11 +34,7 @@ const App = () => {
         try {
           const actionUrl = new URL(actionParam);
           
-          // Extract website URL (origin) from the action URL
           setWebsiteUrl(actionUrl.toString());
-          
-          // Extract website text from the pathname
-          // Remove leading slash and replace hyphens with spaces
           setWebsiteText(actionUrl.host);
 
           const action = await Action.fetch(
