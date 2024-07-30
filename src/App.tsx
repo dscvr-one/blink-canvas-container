@@ -63,7 +63,6 @@ const App = () => {
       resizeObserver.observe(containerRef.current);
     }
 
-    // Cleanup function
     return () => {
       if (containerRef.current) {
         resizeObserver.unobserve(containerRef.current);
