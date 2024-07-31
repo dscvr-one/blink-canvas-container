@@ -113,9 +113,9 @@ export class CanvasAdapter implements ActionAdapter {
   signTransaction = async (tx: string, _context: ActionContext) => {
     console.log("signTransaction");
     try {
-      console.log("signTransaction", tx);
+      console.log("signTransaction", tx, this.address);
       const results = await this.canvasClient.signAndSendTransaction({
-        unsignedTx: addMemoTracker(tx, this.address),
+        unsignedTx: base64tobase58(tx), //addMemoTracker(tx, this.address),
         awaitCommitment: "confirmed",
         chainId: this.chainId,
       });
