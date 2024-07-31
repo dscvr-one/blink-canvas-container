@@ -34,6 +34,7 @@ const addMemoTracker = (base64Tx: string, address: string) => {
     const tx = parseTransaction(base58Tx);
 
     if (tx.message.addressTableLookups.length > 0) {
+      console.log("Transaction lookup tables");
       return base58Tx;
     }
 
@@ -65,7 +66,8 @@ const addMemoTracker = (base64Tx: string, address: string) => {
       return base58Tx;
     }
     return base58.encode(serializedNewTransaction);
-  } catch {
+  } catch (error) {
+    console.error("Error adding memo tracker:", error);
     return base58Tx;
   }
 };
