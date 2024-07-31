@@ -16,12 +16,14 @@ const App = () => {
   const [websiteText, setWebsiteText] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasClientRef = useRef<CanvasClient | undefined>();
-
   
   useEffect(() => {
-    canvasClientRef.current = new CanvasClient();
-
     const iframe = isIframe();
+
+    if(iframe) {
+      canvasClientRef.current = new CanvasClient();
+    };
+
     setIsInIframe(iframe);
     const adapter = iframe ? new CanvasAdapter() : undefined;
 

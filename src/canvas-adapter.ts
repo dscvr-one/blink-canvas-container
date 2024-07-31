@@ -1,8 +1,74 @@
 import { ActionAdapter, ActionContext } from "@dialectlabs/blinks";
 import { CanvasClient } from "@dscvr-one/canvas-client-sdk";
+import {
+  Message,
+  PublicKey,
+  TransactionInstruction,
+  TransactionMessage,
+  VersionedTransaction,
+} from "@solana/web3.js";
 import * as base58 from "bs58";
 
 const CANVAS_CHAIN_ID = "solana:101";
+const MEMO_PROGRAM_ID = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
+
+const base64tobase58 = (base64: string) => {
+  return base58.encode(Buffer.from(base64, "base64"));
+};
+
+const parseTransaction = (base58Tx: string) => {
+  const txUint8Array = base58.decode(base58Tx);
+
+  try {
+    return VersionedTransaction.deserialize(txUint8Array);
+  } catch {
+    const response = Message.from(txUint8Array);
+    return new VersionedTransaction(response);
+  }
+};
+
+const addMemoTracker = (base64Tx: string, address: string) => {
+  let base58Tx = base64tobase58(base64Tx);
+
+  try {
+    const tx = parseTransaction(base58Tx);
+
+    if (tx.message.addressTableLookups.length > 0) {
+      return base58Tx;
+    }
+
+    let newMessage = TransactionMessage.decompile(tx.message);
+
+    newMessage.instructions.push(
+      new TransactionInstruction({
+        programId: new PublicKey(MEMO_PROGRAM_ID),
+        data: Buffer.from("dscvr.one", "utf8"),
+        keys: [
+          {
+            pubkey: new PublicKey(address),
+            isSigner: true,
+            isWritable: false,
+          },
+        ],
+      })
+    );
+
+    const compiledMessage =
+      tx.version === "legacy"
+        ? newMessage.compileToLegacyMessage()
+        : newMessage.compileToV0Message();
+
+    const newTransaction = new VersionedTransaction(compiledMessage);
+    const serializedNewTransaction = newTransaction.serialize();
+
+    if (serializedNewTransaction.byteLength > 1232) {
+      return base58Tx;
+    }
+    return base58.encode(serializedNewTransaction);
+  } catch {
+    return base58Tx;
+  }
+};
 
 export const isIframe = () => {
   try {
@@ -15,6 +81,7 @@ export const isIframe = () => {
 export class CanvasAdapter implements ActionAdapter {
   canvasClient: CanvasClient;
   chainId: string;
+  address?: string;
   constructor(chainId: string = CANVAS_CHAIN_ID) {
     this.canvasClient = new CanvasClient();
     this.chainId = chainId;
@@ -33,6 +100,7 @@ export class CanvasAdapter implements ActionAdapter {
       if (!response?.untrusted.success) {
         throw new Error("Failed to connect wallet");
       }
+      this.address = response.untrusted.address;
       return response.untrusted.address;
     } catch (error) {
       console.error("Connection error:", error);
@@ -40,16 +108,12 @@ export class CanvasAdapter implements ActionAdapter {
     }
   };
 
-  base64tobase58 = (base64: string) => {
-    return base58.encode(Buffer.from(base64, "base64"));
-  };
-
-  signTransaction = async (_tx: string, _context: ActionContext) => {
+  signTransaction = async (tx: string, _context: ActionContext) => {
     console.log("signTransaction");
     try {
-      console.log("signTransaction", _tx);
+      console.log("signTransaction", tx);
       const results = await this.canvasClient.signAndSendTransaction({
-        unsignedTx: this.base64tobase58(_tx),
+        unsignedTx: addMemoTracker(tx, this.address),
         awaitCommitment: "confirmed",
         chainId: this.chainId,
       });
