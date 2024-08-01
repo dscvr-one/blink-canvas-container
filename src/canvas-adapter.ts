@@ -1,7 +1,6 @@
 import { ActionAdapter, ActionContext } from "@dialectlabs/blinks";
 import { CanvasClient } from "@dscvr-one/canvas-client-sdk";
 import {
-  Message,
   PublicKey,
   TransactionInstruction,
   TransactionMessage,
@@ -21,26 +20,31 @@ const parseTransaction = (base58Tx: string) => {
 
   try {
     return VersionedTransaction.deserialize(txUint8Array);
-  } catch {
-    const response = Message.from(txUint8Array);
-    return new VersionedTransaction(response);
+  } catch (error) {
+    console.error("Error parsing transaction:", error);
+    return null;
   }
 };
 
-const addMemoTracker = (base64Tx: string, address: string) => {
+const addMemoTracker = async (base64Tx: string, address: string) => {
   let base58Tx = base64tobase58(base64Tx);
 
   try {
     const tx = parseTransaction(base58Tx);
 
-    if (tx.message.addressTableLookups.length > 0) {
-      console.log("Transaction lookup tables");
+    //can't compose already signed transactions
+    let isSigned = tx.signatures.some((sig) => sig.some((s) => s > 0));
+    if (isSigned) {
       return base58Tx;
     }
 
-    let newMessage = TransactionMessage.decompile(tx.message);
+    //handle tx with lookup tables later
+    if (tx.message.addressTableLookups.length > 0) {
+      return base58Tx;
+    }
 
-    newMessage.instructions.push(
+    var txMessage = TransactionMessage.decompile(tx.message);
+    txMessage.instructions.push(
       new TransactionInstruction({
         programId: new PublicKey(MEMO_PROGRAM_ID),
         data: Buffer.from("dscvr.one", "utf8"),
@@ -54,13 +58,14 @@ const addMemoTracker = (base64Tx: string, address: string) => {
       })
     );
 
-    const compiledMessage =
-      tx.version === "legacy"
-        ? newMessage.compileToLegacyMessage()
-        : newMessage.compileToV0Message();
+    let newMessage =
+      tx.version == "legacy"
+        ? txMessage.compileToLegacyMessage()
+        : txMessage.compileToV0Message();
 
-    const newTransaction = new VersionedTransaction(compiledMessage);
-    const serializedNewTransaction = newTransaction.serialize();
+    let newTx = new VersionedTransaction(newMessage);
+
+    const serializedNewTransaction = newTx.serialize();
 
     if (serializedNewTransaction.byteLength > 1232) {
       return base58Tx;
@@ -111,12 +116,10 @@ export class CanvasAdapter implements ActionAdapter {
   };
 
   signTransaction = async (tx: string, _context: ActionContext) => {
-    console.log("signTransaction");
     try {
       console.log("signTransaction", tx, this.address);
-      console.log("signTransaction", addMemoTracker(tx, this.address));
       const results = await this.canvasClient.signAndSendTransaction({
-        unsignedTx: base64tobase58(tx), //addMemoTracker(tx, this.address),
+        unsignedTx: await addMemoTracker(tx, this.address),
         awaitCommitment: "confirmed",
         chainId: this.chainId,
       });
@@ -132,7 +135,6 @@ export class CanvasAdapter implements ActionAdapter {
   };
 
   confirmTransaction = async (_signature: string, _context: ActionContext) => {
-    console.log("confirmTransaction");
     try {
       await true;
     } catch (error) {
