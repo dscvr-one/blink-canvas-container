@@ -77,7 +77,7 @@ const App = () => {
   const exampleSecurityLevel = "only-trusted";
 
   const containerStyle = {
-    maxWidth: '380px',
+    maxWidth: '450px',
     margin: '0 auto',
     width: '100%'
   };
