@@ -1,4 +1,4 @@
-import { ActionAdapter, ActionContext } from "@dialectlabs/blinks";
+import { ActionAdapter, ActionAdapterMetadata, ActionContext, BlockchainIds } from "@dialectlabs/blinks";
 import { CanvasClient } from "@dscvr-one/canvas-client-sdk";
 import {
   PublicKey,
@@ -86,6 +86,11 @@ export const isIframe = () => {
 };
 
 export class CanvasAdapter implements ActionAdapter {
+
+  public metadata: ActionAdapterMetadata = {
+    supportedBlockchainIds: [BlockchainIds.SOLANA_MAINNET, BlockchainIds.SOLANA_DEVNET],
+  };
+  
   canvasClient: CanvasClient;
   chainId: string;
   address?: string;

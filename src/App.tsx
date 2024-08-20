@@ -3,9 +3,10 @@ import "./App.css";
 import {
   Action,
   ActionContainer,
+  useActionsRegistryInterval,
 } from "@dialectlabs/blinks";
-import '@dialectlabs/blinks/index.css';
-import './blink.css'
+import "@dialectlabs/blinks/index.css";
+import "./blink.css";
 import { CanvasAdapter, isIframe } from "./canvas-adapter";
 import { CanvasClient } from "@dscvr-one/canvas-client-sdk";
 
@@ -16,33 +17,32 @@ const App = () => {
   const [websiteText, setWebsiteText] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasClientRef = useRef<CanvasClient | undefined>();
-  
+  const { isRegistryLoaded } = useActionsRegistryInterval();
+
   useEffect(() => {
     const iframe = isIframe();
 
-    if(iframe) {
+    if (iframe) {
       canvasClientRef.current = new CanvasClient();
-    };
+    }
 
     setIsInIframe(iframe);
     const adapter = iframe ? new CanvasAdapter() : undefined;
 
     const fetchAction = async () => {
       const url = new URL(window.location.href);
-      
-      const actionParam = url.searchParams.get('action') ?? 'https://blink-chat.xyz/api/actions/chat';
-      
+
+      const actionParam =
+        url.searchParams.get("action") ??
+        "https://blink-chat.xyz/api/actions/chat";
+
       if (actionParam) {
         try {
           const actionUrl = new URL(actionParam);
-          
+
           setWebsiteUrl(actionUrl.toString());
           setWebsiteText(actionUrl.host);
-
-          const action = await Action.fetch(
-            actionParam,
-            adapter
-          );
+          const action = await Action.fetch(actionParam, adapter);
           setAction(action);
         } catch (error) {
           console.error("Invalid action URL:", error);
@@ -51,7 +51,7 @@ const App = () => {
         console.error("No action parameter provided in URL");
       }
     };
-    fetchAction();
+    if (isRegistryLoaded) fetchAction();
 
     const resizeObserver = new ResizeObserver((_) => {
       canvasClientRef?.current?.resize();
@@ -66,21 +66,30 @@ const App = () => {
         resizeObserver.unobserve(containerRef.current);
       }
     };
-  }, []);
+  }, [isRegistryLoaded]);
 
   const exampleCallbacks = {
     onActionMount: (action: any, url: any, actionState: any) => {
-      console.log("Action mounted:", action, url, actionState);
+      console.log(
+        "Action mounted:",
+        action,
+        url,
+        `actionState: ${actionState}`
+      );
     },
   };
 
-  const exampleSecurityLevel = "only-trusted";
+  const exampleSecurityLevel = "all";
 
   const containerStyle = {
-    maxWidth: '450px',
-    margin: '0 auto',
-    width: '100%'
+    maxWidth: "450px",
+    margin: "0 auto",
+    width: "100%",
   };
+
+  if (!isRegistryLoaded) {
+    return <div>Loading...</div>; // Or any other loading indicator
+  }
 
   return (
     <div ref={containerRef} style={containerStyle}>
