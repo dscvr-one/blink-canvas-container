@@ -3,6 +3,7 @@ import "./App.css";
 import {
   Action,
   ActionContainer,
+  useActionsRegistryInterval
 } from "@dialectlabs/blinks";
 import '@dialectlabs/blinks/index.css';
 import './blink.css'
@@ -16,6 +17,7 @@ const App = () => {
   const [websiteText, setWebsiteText] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasClientRef = useRef<CanvasClient | undefined>();
+  const { isRegistryLoaded } = useActionsRegistryInterval();
   
   useEffect(() => {
     const iframe = isIframe();
@@ -38,7 +40,6 @@ const App = () => {
           
           setWebsiteUrl(actionUrl.toString());
           setWebsiteText(actionUrl.host);
-
           const action = await Action.fetch(
             actionParam,
             adapter
@@ -51,7 +52,7 @@ const App = () => {
         console.error("No action parameter provided in URL");
       }
     };
-    fetchAction();
+    if(isRegistryLoaded) fetchAction();
 
     const resizeObserver = new ResizeObserver((_) => {
       canvasClientRef?.current?.resize();
@@ -66,21 +67,25 @@ const App = () => {
         resizeObserver.unobserve(containerRef.current);
       }
     };
-  }, []);
+  }, [isRegistryLoaded]);
 
   const exampleCallbacks = {
     onActionMount: (action: any, url: any, actionState: any) => {
-      console.log("Action mounted:", action, url, actionState);
+      console.log("Action mounted:", action, url, `actionState: ${actionState}`);
     },
   };
 
-  const exampleSecurityLevel = "only-trusted";
+  const exampleSecurityLevel = "all";
 
   const containerStyle = {
     maxWidth: '450px',
     margin: '0 auto',
     width: '100%'
   };
+
+  if (!isRegistryLoaded) {
+    return <div>Loading...</div>; // Or any other loading indicator
+  }
 
   return (
     <div ref={containerRef} style={containerStyle}>

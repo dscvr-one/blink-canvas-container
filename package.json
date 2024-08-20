@@ -8,10 +8,10 @@
     "build": "tsc -b && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "tunnel": "npx cloudflared tunnel --url http://localhost:5173"
+    "tunnel": "npx cloudflared tunnel --url http://localhost:5174"
   },
   "dependencies": {
-    "@dialectlabs/blinks": "^0.5.0",
+    "@dialectlabs/blinks": "^0.8.0",
     "@dscvr-one/canvas-client-sdk": "^1.0.7",
     "@solana/web3.js": "^1.95.2",
     "base58": "^2.0.1",
