@@ -1,60 +1,53 @@
-import { useEffect, useRef, useState } from "react";
-import "./App.css";
-import {
-  Action,
-  ActionContainer,
-} from "@dialectlabs/blinks";
+import { useEffect, useRef, useState } from 'react';
+import './App.css';
+import { Action, ActionContainer } from '@dialectlabs/blinks';
 import '@dialectlabs/blinks/index.css';
-import './blink.css'
-import { CanvasAdapter, isIframe } from "./canvas-adapter";
-import { CanvasClient } from "@dscvr-one/canvas-client-sdk";
+import './blink.css';
+import { canvasClient } from './canvas-client';
+import { useCanvasAdapter } from './use-canvas-adapter';
 
 const App = () => {
   const [action, setAction] = useState<Action | null>(null);
-  const [_, setIsInIframe] = useState(false);
-  const [websiteUrl, setWebsiteUrl] = useState("");
-  const [websiteText, setWebsiteText] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState('');
+  const [websiteText, setWebsiteText] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
-  const canvasClientRef = useRef<CanvasClient | undefined>();
-  
+  const { initialize, canvasAdapterRef } = useCanvasAdapter();
+
   useEffect(() => {
-    const iframe = isIframe();
-
-    if(iframe) {
-      canvasClientRef.current = new CanvasClient();
-    };
-
-    setIsInIframe(iframe);
-    const adapter = iframe ? new CanvasAdapter() : undefined;
+    if (canvasClient) {
+      initialize();
+    }
 
     const fetchAction = async () => {
       const url = new URL(window.location.href);
-      
-      const actionParam = url.searchParams.get('action') ?? 'https://blink-chat.xyz/api/actions/chat';
-      
+
+      const actionParam =
+        url.searchParams.get('action') ??
+        'https://blink-chat.xyz/api/actions/chat';
+
       if (actionParam) {
         try {
           const actionUrl = new URL(actionParam);
-          
+
           setWebsiteUrl(actionUrl.toString());
           setWebsiteText(actionUrl.host);
 
           const action = await Action.fetch(
             actionParam,
-            adapter
+            canvasAdapterRef.current
           );
           setAction(action);
         } catch (error) {
-          console.error("Invalid action URL:", error);
+          console.error('Invalid action URL:', error);
         }
       } else {
-        console.error("No action parameter provided in URL");
+        console.error('No action parameter provided in URL');
       }
     };
     fetchAction();
 
     const resizeObserver = new ResizeObserver((_) => {
-      canvasClientRef?.current?.resize();
+      canvasClient.resize();
     });
 
     if (containerRef.current) {
@@ -70,16 +63,16 @@ const App = () => {
 
   const exampleCallbacks = {
     onActionMount: (action: any, url: any, actionState: any) => {
-      console.log("Action mounted:", action, url, actionState);
+      console.log('Action mounted:', action, url, actionState);
     },
   };
 
-  const exampleSecurityLevel = "only-trusted";
+  const exampleSecurityLevel = 'only-trusted';
 
   const containerStyle = {
     maxWidth: '450px',
     margin: '0 auto',
-    width: '100%'
+    width: '100%',
   };
 
   return (

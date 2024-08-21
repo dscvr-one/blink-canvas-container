@@ -12,7 +12,10 @@
   },
   "dependencies": {
     "@dialectlabs/blinks": "^0.5.0",
-    "@dscvr-one/canvas-client-sdk": "^1.0.7",
+    "@dscvr-one/canvas-client-sdk": "^1.1.0",
+    "@dscvr-one/canvas-wallet-adapter": "^1.0.1",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.35",
     "@solana/web3.js": "^1.95.2",
     "base58": "^2.0.1",
     "react": "^18.3.1",
