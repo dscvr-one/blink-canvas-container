@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import {
   Action,
-  ActionContainer,
+  Blink,
+  useActionsRegistryInterval,
 } from "@dialectlabs/blinks";
 import '@dialectlabs/blinks/index.css';
 import './blink.css'
@@ -12,33 +13,30 @@ import { CanvasClient } from "@dscvr-one/canvas-client-sdk";
 const App = () => {
   const [action, setAction] = useState<Action | null>(null);
   const [_, setIsInIframe] = useState(false);
-  const [websiteUrl, setWebsiteUrl] = useState("");
   const [websiteText, setWebsiteText] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasClientRef = useRef<CanvasClient | undefined>();
-  
+  const { isRegistryLoaded } = useActionsRegistryInterval();
+
   useEffect(() => {
     const iframe = isIframe();
-
-    if(iframe) {
+    if (iframe) {
       canvasClientRef.current = new CanvasClient();
     };
 
     setIsInIframe(iframe);
+
     const adapter = iframe ? new CanvasAdapter() : undefined;
 
     const fetchAction = async () => {
       const url = new URL(window.location.href);
-      
+
       const actionParam = url.searchParams.get('action') ?? 'https://blink-chat.xyz/api/actions/chat';
-      
+
       if (actionParam) {
         try {
           const actionUrl = new URL(actionParam);
-          
-          setWebsiteUrl(actionUrl.toString());
-          setWebsiteText(actionUrl.host);
-
+          setWebsiteText(actionUrl.hostname)
           const action = await Action.fetch(
             actionParam,
             adapter
@@ -68,14 +66,6 @@ const App = () => {
     };
   }, []);
 
-  const exampleCallbacks = {
-    onActionMount: (action: any, url: any, actionState: any) => {
-      console.log("Action mounted:", action, url, actionState);
-    },
-  };
-
-  const exampleSecurityLevel = "only-trusted";
-
   const containerStyle = {
     maxWidth: '450px',
     margin: '0 auto',
@@ -84,16 +74,8 @@ const App = () => {
 
   return (
     <div ref={containerRef} style={containerStyle}>
-      {action && (
-        <ActionContainer
-          action={action}
-          websiteUrl={websiteUrl}
-          websiteText={websiteText}
-          callbacks={exampleCallbacks}
-          securityLevel={exampleSecurityLevel}
-          stylePreset="x-dark"
-        />
-      )}
+      {/* Changed this from the ActionContainer to using the Blink Component, I think this was the major change, and I also updated some packages and added get metadata to the canvas Adapter */}
+      {isRegistryLoaded && action ? <Blink stylePreset="x-dark" action={action} websiteText={websiteText} /> : null}
     </div>
   );
 };

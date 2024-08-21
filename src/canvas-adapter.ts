@@ -1,4 +1,4 @@
-import { ActionAdapter, ActionContext } from "@dialectlabs/blinks";
+import { ActionAdapter, ActionAdapterMetadata, ActionContext, BlockchainIds } from "@dialectlabs/blinks";
 import { CanvasClient } from "@dscvr-one/canvas-client-sdk";
 import {
   PublicKey,
@@ -6,7 +6,7 @@ import {
   TransactionMessage,
   VersionedTransaction,
 } from "@solana/web3.js";
-import * as base58 from "bs58";
+import base58 from "bs58";
 
 const CANVAS_CHAIN_ID = "solana:101";
 const MEMO_PROGRAM_ID = "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr";
@@ -141,4 +141,10 @@ export class CanvasAdapter implements ActionAdapter {
       console.error("Transaction confirmation error:", error);
     }
   };
+
+  get metadata(): ActionAdapterMetadata {
+    return {
+      supportedBlockchainIds: [BlockchainIds.SOLANA_MAINNET],
+    };
+  }
 }
